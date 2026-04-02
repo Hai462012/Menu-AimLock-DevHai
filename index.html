@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>DevHai System</title>
+
+<style>
+body {
+  margin: 0;
+  background: #0a0a0a;
+  font-family: monospace;
+  color: #00ffcc;
+  text-align: center;
+}
+
+/* BOX */
+.box {
+  margin-top: 80px;
+}
+
+.hidden {
+  display: none;
+}
+
+/* INPUT + BUTTON */
+input {
+  padding: 10px;
+  width: 220px;
+  background: black;
+  border: 1px solid #00ffcc;
+  color: #00ffcc;
+}
+
+button {
+  padding: 10px 20px;
+  margin: 5px;
+  background: transparent;
+  border: 1px solid #00ffcc;
+  color: #00ffcc;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  background: #00ffcc;
+  color: black;
+  box-shadow: 0 0 10px #00ffcc;
+}
+
+/* MENU BUTTON */
+.menu-btn {
+  display: block;
+  width: 220px;
+  margin: 10px auto;
+  padding: 10px;
+  border: 1px solid #00ffcc;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.menu-btn:hover {
+  background: #00ffcc;
+  color: black;
+}
+
+/* KEY LIST */
+.key-item {
+  margin: 5px;
+  padding: 5px;
+  border-bottom: 1px solid #00ffcc;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN USER -->
+<div class="box" id="userLogin">
+  <h2>🔐 LOGIN TOOL</h2>
+  <input id="userKey" placeholder="Nhập key..."><br><br>
+  <button onclick="loginUser()">Đăng nhập</button><br><br>
+  <button onclick="openAdmin()">👑 Admin</button>
+</div>
+
+<!-- USER MENU -->
+<div class="box hidden" id="userMenu">
+  <h2>⚡ DEVHAI PANEL</h2>
+  <div class="menu-btn">AIMLOCK</div>
+  <div class="menu-btn">ESP</div>
+  <div class="menu-btn">NO RECOIL</div>
+  <div class="menu-btn">HEADSHOT</div>
+  <button onclick="logout()">Đăng xuất</button>
+</div>
+
+<!-- ADMIN LOGIN -->
+<div class="box hidden" id="adminLogin">
+  <h2>👑 ADMIN LOGIN</h2>
+  <input type="password" id="adminPass" placeholder="Nhập mật khẩu"><br><br>
+  <button onclick="loginAdmin()">Đăng nhập</button><br>
+  <button onclick="back()">Quay lại</button>
+</div>
+
+<!-- ADMIN PANEL -->
+<div class="box hidden" id="adminPanel">
+  <h2>🛠 ADMIN PANEL</h2>
+
+  <h3>Tạo Key</h3>
+  <button onclick="createKey(1)">1 Ngày</button>
+  <button onclick="createKey(7)">7 Ngày</button>
+  <button onclick="createKey(30)">30 Ngày</button>
+
+  <h3>Danh sách key</h3>
+  <div id="keyList"></div>
+
+  <button onclick="logout()">Đăng xuất</button>
+</div>
+
+<script>
+// ===== STORAGE =====
+let keys = JSON.parse(localStorage.getItem("keys")) || [];
+
+// ===== USER LOGIN =====
+function loginUser() {
+  let input = document.getElementById("userKey").value.trim();
+  let now = Date.now();
+
+  let found = keys.find(k => k.key === input && k.exp > now);
+
+  if (found) {
+    show("userMenu");
+  } else {
+    alert("❌ Key sai hoặc hết hạn!");
+  }
+}
+
+// ===== ADMIN =====
+function openAdmin() {
+  show("adminLogin");
+}
+
+function loginAdmin() {
+  let pass = document.getElementById("adminPass").value;
+
+  if (pass === "admin123") {
+    show("adminPanel");
+    renderKeys();
+  } else {
+    alert("❌ Sai mật khẩu!");
+  }
+}
+
+// ===== CREATE KEY =====
+function createKey(days) {
+  let key = generateKey();
+  let exp = Date.now() + days * 86400000;
+
+  keys.push({ key, exp });
+  save();
+  renderKeys();
+
+  alert("✅ Tạo key: " + key);
+}
+
+// ===== KEY GENERATOR =====
+function generateKey() {
+  return "VIP-" + Math.random().toString(36).substring(2,10).toUpperCase();
+}
+
+// ===== RENDER =====
+function renderKeys() {
+  let box = document.getElementById("keyList");
+  box.innerHTML = "";
+
+  keys.forEach(k => {
+    let div = document.createElement("div");
+    div.className = "key-item";
+    div.innerText = `${k.key} | Hết hạn: ${new Date(k.exp).toLocaleString()}`;
+    box.appendChild(div);
+  });
+}
+
+// ===== SAVE =====
+function save() {
+  localStorage.setItem("keys", JSON.stringify(keys));
+}
+
+// ===== UI CONTROL =====
+function show(id) {
+  ["userLogin","userMenu","adminLogin","adminPanel"].forEach(x=>{
+    document.getElementById(x).classList.add("hidden");
+  });
+  document.getElementById(id).classList.remove("hidden");
+}
+
+function logout() {
+  show("userLogin");
+}
+
+function back() {
+  show("userLogin");
+}
+</script>
+
+</body>
+</html>
